@@ -19,6 +19,7 @@ class HybridTaskCascade(CascadeRCNN):
                  semantic_fusion=('bbox', 'mask'),
                  interleaved=True,
                  mask_info_flow=True,
+                 semantic_optimize=True,
                  **kwargs):
         super(HybridTaskCascade, self).__init__(num_stages, backbone, **kwargs)
         assert self.with_bbox and self.with_mask
@@ -31,6 +32,7 @@ class HybridTaskCascade(CascadeRCNN):
         self.semantic_fusion = semantic_fusion
         self.interleaved = interleaved
         self.mask_info_flow = mask_info_flow
+        self.semantic_optimize = semantic_optimize
 
     @property
     def with_semantic(self):
@@ -186,8 +188,9 @@ class HybridTaskCascade(CascadeRCNN):
         # 2 outputs: segmentation prediction and embedded features
         if self.with_semantic:
             semantic_pred, semantic_feat = self.semantic_head(x)
-            loss_seg = self.semantic_head.loss(semantic_pred, gt_semantic_seg)
-            losses['loss_semantic_seg'] = loss_seg
+            if self.semantic_optimize:
+                loss_seg = self.semantic_head.loss(semantic_pred, gt_semantic_seg)
+                losses['loss_semantic_seg'] = loss_seg
         else:
             semantic_feat = None
 

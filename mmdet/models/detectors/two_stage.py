@@ -189,7 +189,7 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
 
         return losses
 
-    def simple_test(self, img, img_meta, proposals=None, rescale=False):
+    def simple_test(self, img, img_meta, proposals=None, rescale=False, eval_size=None):
         """Test without augmentation."""
         assert self.with_bbox, "Bbox head must be implemented."
 
@@ -207,7 +207,7 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
             return bbox_results
         else:
             segm_results = self.simple_test_mask(
-                x, img_meta, det_bboxes, det_labels, rescale=rescale)
+                x, img_meta, det_bboxes, det_labels, rescale=rescale, eval_size=eval_size)
             return bbox_results, segm_results
 
     def aug_test(self, imgs, img_metas, rescale=False):

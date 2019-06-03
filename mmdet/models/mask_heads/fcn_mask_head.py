@@ -118,7 +118,7 @@ class FCNMaskHead(nn.Module):
         return loss
 
     def get_seg_masks(self, mask_pred, det_bboxes, det_labels, rcnn_test_cfg,
-                      ori_shape, scale_factor, rescale):
+                      ori_shape, scale_factor, rescale, eval_size=None):
         """Get segmentation masks from mask_pred and bboxes.
 
         Args:
@@ -131,6 +131,7 @@ class FCNMaskHead(nn.Module):
             img_shape (Tensor): shape (3, )
             rcnn_test_cfg (dict): rcnn testing config
             ori_shape: original image size
+            eval_size: the mask size for evaluation
 
         Returns:
             list[list]: encoded masks
@@ -166,6 +167,8 @@ class FCNMaskHead(nn.Module):
             bbox_mask = (bbox_mask > rcnn_test_cfg.mask_thr_binary).astype(
                 np.uint8)
             im_mask[bbox[1]:bbox[1] + h, bbox[0]:bbox[0] + w] = bbox_mask
+            if eval_size:
+                im_mask = mmcv.imresize(im_mask, eval_size, interpolation='nearest')
             rle = mask_util.encode(
                 np.array(im_mask[:, :, np.newaxis], order='F'))[0]
             cls_segms[label - 1].append(rle)

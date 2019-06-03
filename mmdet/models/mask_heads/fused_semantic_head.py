@@ -31,7 +31,8 @@ class FusedSemanticHead(nn.Module):
                  ignore_label=255,
                  loss_weight=0.2,
                  conv_cfg=None,
-                 norm_cfg=None):
+                 norm_cfg=None,
+                 requires_grad=True):
         super(FusedSemanticHead, self).__init__()
         self.num_ins = num_ins
         self.fusion_level = fusion_level
@@ -75,6 +76,10 @@ class FusedSemanticHead(nn.Module):
         self.conv_logits = nn.Conv2d(conv_out_channels, self.num_classes, 1)
 
         self.criterion = nn.CrossEntropyLoss(ignore_index=ignore_label)
+        
+        if not requires_grad:
+            for param in self.parameters():
+                param.requires_grad = False
 
     def init_weights(self):
         kaiming_init(self.conv_logits)
