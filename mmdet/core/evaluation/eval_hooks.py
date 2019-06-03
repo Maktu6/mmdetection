@@ -160,3 +160,59 @@ class CocoDistEvalmAPHook(DistEvalHook):
                 '{ap[4]:.3f} {ap[5]:.3f}').format(ap=cocoEval.stats[:6])
         runner.log_buffer.ready = True
         os.remove(tmp_file)
+
+class iMaterialistEvalmAPHook(DistEvalHook):
+
+    def after_train_epoch(self, runner):
+        if not self.every_n_epochs(runner, self.interval):
+            return
+        runner.model.eval()
+        results = [None for _ in range(len(self.dataset))]
+        if runner.rank == 0:
+            prog_bar = mmcv.ProgressBar(len(self.dataset))
+        for idx in range(runner.rank, len(self.dataset), runner.world_size):
+            data = self.dataset[idx]
+            data_gpu = scatter(
+                collate([data], samples_per_gpu=1),
+                [torch.cuda.current_device()])[0]
+            data_gpu['eval_size'] = (512, 512)
+
+            # compute output
+            with torch.no_grad():
+                result = runner.model(
+                    return_loss=False, rescale=True, **data_gpu)
+            results[idx] = result
+
+            batch_size = runner.world_size
+            if runner.rank == 0:
+                for _ in range(batch_size):
+                    prog_bar.update()
+
+        self.evaluate(runner, results)
+
+    def evaluate(self, runner, results):
+        tmp_file = osp.join(runner.work_dir, 'temp_0.json')
+        results2json(self.dataset, results, tmp_file)
+
+        res_types = ['bbox',
+                     'segm'] if runner.model.module.with_mask else ['bbox']
+        cocoGt = self.dataset.coco
+        cocoDt = cocoGt.loadRes(tmp_file)
+        imgIds = cocoGt.getImgIds()
+        for res_type in res_types:
+            iou_type = res_type
+            cocoEval = COCOeval(cocoGt, cocoDt, iou_type)
+            cocoEval.params.imgIds = imgIds
+            cocoEval.evaluate()
+            cocoEval.accumulate()
+            cocoEval.summarize()
+            metrics = ['mAP', 'mAP_50', 'mAP_75', 'mAP_s', 'mAP_m', 'mAP_l']
+            for i in range(len(metrics)):
+                key = '{}_{}'.format(res_type, metrics[i])
+                val = float('{:.3f}'.format(cocoEval.stats[i]))
+                runner.log_buffer.output[key] = val
+            runner.log_buffer.output['{}_mAP_copypaste'.format(res_type)] = (
+                '{ap[0]:.3f} {ap[1]:.3f} {ap[2]:.3f} {ap[3]:.3f} '
+                '{ap[4]:.3f} {ap[5]:.3f}').format(ap=cocoEval.stats[:6])
+        runner.log_buffer.ready = True
+        os.remove(tmp_file)

@@ -77,12 +77,21 @@ def coco_classes():
         'scissors', 'teddy_bear', 'hair_drier', 'toothbrush'
     ]
 
+def imaterialist_classes():
+    return ['shirt, blouse', 'top, t-shirt, sweatshirt', 'sweater', 'cardigan', 'jacket', 
+            'vest', 'pants', 'shorts', 'skirt', 'coat', 'dress', 'jumpsuit', 'cape', 
+            'glasses', 'hat', 'headband, head covering, hair accessory', 'tie', 'glove', 
+            'watch', 'belt', 'leg warmer', 'tights, stockings', 'sock', 'shoe', 
+            'bag, wallet', 'scarf', 'umbrella', 'hood', 'collar', 'lapel', 'epaulette', 
+            'sleeve', 'pocket', 'neckline', 'buckle', 'zipper', 'applique', 'bead', 
+            'bow', 'flower', 'fringe', 'ribbon', 'rivet', 'ruffle', 'sequin', 'tassel']
 
 dataset_aliases = {
     'voc': ['voc', 'pascal_voc', 'voc07', 'voc12'],
     'imagenet_det': ['det', 'imagenet_det', 'ilsvrc_det'],
     'imagenet_vid': ['vid', 'imagenet_vid', 'ilsvrc_vid'],
-    'coco': ['coco', 'mscoco', 'ms_coco']
+    'coco': ['coco', 'mscoco', 'ms_coco'],
+    'imaterialist':['imaterialist']
 }
 
 

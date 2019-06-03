@@ -190,6 +190,12 @@ def _non_dist_train(model, dataset, cfg, validate=False):
     runner.register_training_hooks(cfg.lr_config, cfg.optimizer_config,
                                    cfg.checkpoint_config, cfg.log_config)
 
+    if validate:
+        val_dataset_cfg = cfg.data.val
+        dataset_type = getattr(datasets, val_dataset_cfg.type)
+        if issubclass(dataset_type, datasets.iMaterialistDataset):
+            from mmdet.core import iMaterialistEvalmAPHook
+            runner.register_hook(iMaterialistEvalmAPHook(val_dataset_cfg))
     if cfg.resume_from:
         runner.resume(cfg.resume_from)
     elif cfg.load_from:
