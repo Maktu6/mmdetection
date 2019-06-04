@@ -268,7 +268,7 @@ class HybridTaskCascade(CascadeRCNN):
 
         return losses
 
-    def simple_test(self, img, img_meta, proposals=None, rescale=False):
+    def simple_test(self, img, img_meta, proposals=None, rescale=False, eval_size=None):
         x = self.extract_feat(img)
         proposal_list = self.simple_test_rpn(
             x, img_meta, self.test_cfg.rpn) if proposals is None else proposals
@@ -322,7 +322,7 @@ class HybridTaskCascade(CascadeRCNN):
                             i, x, _bboxes, semantic_feat=semantic_feat)
                         segm_result = mask_head.get_seg_masks(
                             mask_pred, _bboxes, det_labels, rcnn_test_cfg,
-                            ori_shape, scale_factor, rescale)
+                            ori_shape, scale_factor, rescale, eval_size)
                     ms_segm_result['stage{}'.format(i)] = segm_result
 
             if i < self.num_stages - 1:
@@ -375,7 +375,7 @@ class HybridTaskCascade(CascadeRCNN):
                                                self.test_cfg.rcnn)
                 segm_result = self.mask_head[-1].get_seg_masks(
                     merged_masks, _bboxes, det_labels, rcnn_test_cfg,
-                    ori_shape, scale_factor, rescale)
+                    ori_shape, scale_factor, rescale, eval_size)
             ms_segm_result['ensemble'] = segm_result
 
         if not self.test_cfg.keep_all_stages:
