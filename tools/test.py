@@ -15,16 +15,16 @@ from mmdet.datasets import build_dataloader, get_dataset
 from mmdet.models import build_detector
 
 
-def single_gpu_test(model, data_loader, show=False):
+def single_gpu_test(model, data_loader, show=False, eval_size=None):
     model.eval()
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):
+        data['eval_size'] = eval_size
         with torch.no_grad():
             result = model(return_loss=False, rescale=not show, **data)
         results.append(result)
-
         if show:
             model.module.show_result(data, result, dataset.img_norm_cfg)
 
@@ -118,6 +118,8 @@ def parse_args():
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--eval_size', type=str, default=None,
+                        help = "resize mask for evaluation, e.g.'512,512'")
     args = parser.parse_args()
     return args
 
@@ -127,7 +129,9 @@ def main():
 
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
-
+    if args.eval_size:
+        args.eval_size = tuple(map(int, args.eval_size.split(',')))
+        print("mask will be resize to %s"%str(args.eval_size))
     cfg = mmcv.Config.fromfile(args.config)
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
@@ -164,7 +168,7 @@ def main():
 
     if not distributed:
         model = MMDataParallel(model, device_ids=[0])
-        outputs = single_gpu_test(model, data_loader, args.show)
+        outputs = single_gpu_test(model, data_loader, args.show, args.eval_size)
     else:
         model = MMDistributedDataParallel(model.cuda())
         outputs = multi_gpu_test(model, data_loader, args.tmpdir)

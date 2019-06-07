@@ -119,7 +119,7 @@ class MaskTestMixin(object):
                 scale_factor, rescale, eval_size)
         return segm_result
 
-    def aug_test_mask(self, feats, img_metas, det_bboxes, det_labels):
+    def aug_test_mask(self, feats, img_metas, det_bboxes, det_labels, eval_size=None):
         if det_bboxes.shape[0] == 0:
             segm_result = [[] for _ in range(self.mask_head.num_classes - 1)]
         else:
@@ -150,5 +150,6 @@ class MaskTestMixin(object):
                 self.test_cfg.rcnn,
                 ori_shape,
                 scale_factor=1.0,
-                rescale=False)
+                rescale=False,
+                eval_size=eval_size)
         return segm_result

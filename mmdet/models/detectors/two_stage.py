@@ -210,7 +210,7 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
                 x, img_meta, det_bboxes, det_labels, rescale=rescale, eval_size=eval_size)
             return bbox_results, segm_results
 
-    def aug_test(self, imgs, img_metas, rescale=False):
+    def aug_test(self, imgs, img_metas, rescale=False, eval_size=None):
         """Test with augmentations.
 
         If rescale is False, then returned bboxes and masks will fit the scale
@@ -234,7 +234,7 @@ class TwoStageDetector(BaseDetector, RPNTestMixin, BBoxTestMixin,
         # det_bboxes always keep the original scale
         if self.with_mask:
             segm_results = self.aug_test_mask(
-                self.extract_feats(imgs), img_metas, det_bboxes, det_labels)
+                self.extract_feats(imgs), img_metas, det_bboxes, det_labels, eval_size=eval_size)
             return bbox_results, segm_results
         else:
             return bbox_results
