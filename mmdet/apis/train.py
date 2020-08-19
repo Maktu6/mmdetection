@@ -141,7 +141,7 @@ def _dist_train(model, dataset, cfg, validate=False):
             dist=True)
     ]
     # put model on gpus
-    model = MMDistributedDataParallel(model.cuda())
+    model = MMDistributedDataParallel(model.cuda(0), find_unused_parameters=True)  # 
     # build runner
     optimizer = build_optimizer(model, cfg.optimizer)
     runner = Runner(model, batch_processor, optimizer, cfg.work_dir,

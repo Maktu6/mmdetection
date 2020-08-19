@@ -224,7 +224,7 @@ class CustomDataset(Dataset):
             gt_seg = self.seg_transform(gt_seg.squeeze(), img_scale, flip)
             gt_seg = mmcv.imrescale(
                 gt_seg, self.seg_scale_factor, interpolation='nearest')
-            gt_seg = gt_seg[None, ...]
+            gt_seg = gt_seg[None, ...] * 255 / 255
         if self.proposals is not None:
             proposals = self.bbox_transform(proposals, img_shape, scale_factor,
                                             flip)
